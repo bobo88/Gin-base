@@ -1,19 +1,28 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"log"
+	"todo-list/config"
+	"todo-list/routes"
+)
 
 func main() {
-	r := gin.Default()
+	// 初始化数据库
+	db, err := config.InitDB()
+	if err != nil {
+		log.Fatal("数据库初始化失败:", err)
+	}
+	
+	// 确保在main函数结束时关闭数据库连接
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("获取数据库实例失败:", err)
+	}
+	defer sqlDB.Close()
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "首页",
-		})
-	})
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run(":8888") // listen and serve on 0.0.0.0:8080
+	// 初始化路由
+	r := routes.SetupRouter()
+
+	// 启动服务器
+	r.Run(":9090")
 }
